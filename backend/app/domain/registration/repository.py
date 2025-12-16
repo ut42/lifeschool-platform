@@ -31,4 +31,9 @@ class RegistrationRepository(ABC):
     async def get_by_user_id(self, user_id: UUID) -> List[ExamRegistration]:
         """Get all registrations for a user."""
         pass
+    
+    @abstractmethod
+    async def get_by_exam_id(self, exam_id: UUID) -> List[ExamRegistration]:
+        """Get all registrations for an exam."""
+        pass
 

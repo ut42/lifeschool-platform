@@ -38,6 +38,12 @@ export const registrationService = {
     const response = await api.get('/auth/me/registrations')
     return response.data
   },
+
+  // Get exam registrations (ADMIN only)
+  async getExamRegistrations(examId) {
+    const response = await api.get(`/admin/exams/${examId}/registrations`)
+    return response.data
+  },
 }
 
 export default examService

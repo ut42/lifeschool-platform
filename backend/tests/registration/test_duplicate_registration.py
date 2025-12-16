@@ -89,6 +89,12 @@ class InMemoryRegistrationRepository(RegistrationRepository):
             reg for reg in self._registrations.values()
             if str(reg.user_id) == str(user_id)
         ]
+    
+    async def get_by_exam_id(self, exam_id) -> list[ExamRegistration]:
+        return [
+            reg for reg in self._registrations.values()
+            if str(reg.exam_id) == str(exam_id)
+        ]
 
 
 @pytest.mark.asyncio

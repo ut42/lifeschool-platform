@@ -7,6 +7,7 @@ import CreateExam from './pages/CreateExam'
 import ExamDetails from './pages/ExamDetails'
 import EditExam from './pages/EditExam'
 import MyRegistrations from './pages/MyRegistrations'
+import AdminExamRegistrations from './pages/AdminExamRegistrations'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -62,6 +63,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyRegistrations />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/exams/:examId/registrations"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminExamRegistrations />
                 </ProtectedRoute>
               }
             />

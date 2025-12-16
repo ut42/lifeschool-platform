@@ -60,4 +60,10 @@ class MongoDBRegistrationRepository(RegistrationRepository):
         cursor = self.collection.find({"user_id": str(user_id)})
         documents = await cursor.to_list(length=None)
         return [RegistrationMapper.to_entity(doc) for doc in documents]
+    
+    async def get_by_exam_id(self, exam_id: UUID) -> List[ExamRegistration]:
+        """Get all registrations for an exam."""
+        cursor = self.collection.find({"exam_id": str(exam_id)})
+        documents = await cursor.to_list(length=None)
+        return [RegistrationMapper.to_entity(doc) for doc in documents]
 

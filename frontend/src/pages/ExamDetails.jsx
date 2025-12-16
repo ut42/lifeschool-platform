@@ -212,9 +212,14 @@ const ExamDetails = () => {
 
         <div className="exam-details-actions">
           {user?.role === 'ADMIN' && (
-            <button onClick={() => navigate(`/exams/${examId}/edit`)} className="edit-button">
-              Edit Exam
-            </button>
+            <>
+              <button onClick={() => navigate(`/exams/${examId}/edit`)} className="edit-button">
+                Edit Exam
+              </button>
+              <button onClick={() => navigate(`/admin/exams/${examId}/registrations`)} className="view-registrations-button">
+                View Registrations
+              </button>
+            </>
           )}
           <button onClick={handleLogout} className="logout-button">
             Logout

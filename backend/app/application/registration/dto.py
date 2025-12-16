@@ -17,3 +17,23 @@ class RegistrationResponse(BaseModel):
     status: RegistrationStatus
     created_at: datetime
 
+
+class UserInfoDTO(BaseModel):
+    """DTO for user information in admin queries."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: UUID
+    name: str
+    email: str
+    mobile: Optional[str] = None
+
+
+class RegistrationWithUserResponse(BaseModel):
+    """DTO for registration with user details (admin view)."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    registration_id: UUID
+    user: UserInfoDTO
+    status: RegistrationStatus
+    registered_at: datetime
+

@@ -1,0 +1,236 @@
+.admin-registrations-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: 20px;
+}
+
+.admin-registrations-card {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.admin-registrations-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.admin-registrations-header h1 {
+  font-size: 32px;
+  color: #667eea;
+  margin-bottom: 8px;
+}
+
+.admin-registrations-header h2 {
+  font-size: 24px;
+  color: #333;
+}
+
+.navigation-links {
+  margin-bottom: 24px;
+}
+
+.nav-link {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-link:hover {
+  background: #667eea;
+  color: white;
+}
+
+.exam-info-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.exam-info-section h3 {
+  font-size: 20px;
+  color: #333;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.registrations-section {
+  margin-top: 24px;
+}
+
+.registrations-header {
+  margin-bottom: 16px;
+}
+
+.registrations-header h3 {
+  font-size: 18px;
+  color: #333;
+  margin: 0;
+}
+
+.registrations-table {
+  overflow-x: auto;
+}
+
+.registrations-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.registrations-table thead {
+  background: #f8f9fa;
+}
+
+.registrations-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.registrations-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.registrations-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.status-badge-small {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge-small.registered {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.no-registrations {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.no-registrations p {
+  font-size: 18px;
+}
+
+.admin-registrations-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.logout-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+  background: #dc2626;
+}
+
+.error-container {
+  text-align: center;
+  padding: 40px;
+  color: #c33;
+}
+
+.error-container h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.back-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: #5568d3;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 16px;
+}
+
