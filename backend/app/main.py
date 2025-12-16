@@ -7,7 +7,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from .api.auth import router as auth_router
-from .core.dependencies import set_user_repository
+from .api.exams import router as exams_router
+from .core.dependencies import set_exam_repository, set_user_repository
+from .infrastructure.exam.repository import MongoDBExamRepository
 from .infrastructure.user.repository import MongoDBUserRepository
 
 # Load environment variables
@@ -33,10 +35,14 @@ async def lifespan(app: FastAPI):
     # Create indexes
     await db.users.create_index("email", unique=True)
     await db.users.create_index("id", unique=True)
+    await db.exams.create_index("id", unique=True)
     
-    # Set repository
+    # Set repositories
     user_repository = MongoDBUserRepository(db)
     set_user_repository(user_repository)
+    
+    exam_repository = MongoDBExamRepository(db)
+    set_exam_repository(exam_repository)
     
     yield
     
@@ -47,8 +53,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="LifeSchool Exam Registration Platform",
-    description="Sprint-1: Authentication & User Profile",
-    version="1.0.0",
+    description="Sprint-1 & Sprint-2: Authentication, User Profile & Exam Management",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -63,6 +69,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
+app.include_router(exams_router)
 
 
 @app.get("/")
@@ -70,7 +77,7 @@ async def root():
     """Root endpoint."""
     return {
         "message": "Radhe Radhe! 🙏 LifeSchool Exam Registration Platform API",
-        "version": "1.0.0",
+        "version": "2.0.0",
     }
 
 

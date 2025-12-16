@@ -5,7 +5,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..core.security import TokenData, verify_token
-from ..domain.user.entity import User
+from ..domain.exam.repository import ExamRepository
+from ..domain.user.entity import User, UserRole
 from ..domain.user.exceptions import UserNotFoundError
 from ..domain.user.repository import UserRepository
 
@@ -52,4 +53,29 @@ async def get_current_user(
         )
     
     return user
+
+
+async def get_current_user_role(
+    current_user: User = Depends(get_current_user),
+) -> UserRole:
+    """Dependency to get current user's role."""
+    from ..domain.user.entity import UserRole
+    return current_user.role
+
+
+# Exam repository dependency
+_exam_repository: Optional[ExamRepository] = None
+
+
+def set_exam_repository(repository: ExamRepository) -> None:
+    """Set the exam repository instance."""
+    global _exam_repository
+    _exam_repository = repository
+
+
+def get_exam_repository() -> ExamRepository:
+    """Get the exam repository instance."""
+    if _exam_repository is None:
+        raise RuntimeError("Exam repository not initialized")
+    return _exam_repository
 

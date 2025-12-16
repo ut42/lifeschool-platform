@@ -130,6 +130,11 @@ const Profile = () => {
         )}
 
         <div className="profile-actions">
+          {user?.is_profile_complete && (
+            <button onClick={() => navigate('/exams')} className="primary-button">
+              View Exams →
+            </button>
+          )}
           <button onClick={handleLogout} className="logout-button">
             Logout
           </button>
