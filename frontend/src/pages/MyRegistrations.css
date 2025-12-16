@@ -1,57 +1,37 @@
-.exams-container {
+.registrations-container {
   width: 100%;
   max-width: 900px;
   padding: 20px;
 }
 
-.exams-card {
+.registrations-card {
   background: white;
   border-radius: 16px;
   padding: 40px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.exams-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
+.registrations-header {
+  text-align: center;
+  margin-bottom: 32px;
 }
 
-.exams-header h1 {
+.registrations-header h1 {
   font-size: 32px;
   color: #667eea;
-  margin: 0;
+  margin-bottom: 8px;
 }
 
-.exams-header h2 {
+.registrations-header h2 {
   font-size: 24px;
   color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.create-exam-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.create-exam-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
 .navigation-links {
+  display: flex;
+  gap: 12px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .nav-link {
@@ -71,35 +51,33 @@
   color: white;
 }
 
-.exams-list {
+.registrations-list {
   display: grid;
   gap: 20px;
   margin-top: 24px;
 }
 
-.exam-card {
+.registration-card {
   border: 2px solid #e0e0e0;
   border-radius: 12px;
   padding: 24px;
-  cursor: pointer;
-  transition: all 0.3s;
   background: #fafafa;
+  transition: all 0.3s;
 }
 
-.exam-card:hover {
+.registration-card:hover {
   border-color: #667eea;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-  transform: translateY(-2px);
 }
 
-.exam-header {
+.registration-header {
   display: flex;
   justify-content: space-between;
   align-items: start;
   margin-bottom: 12px;
 }
 
-.exam-header h3 {
+.registration-header h3 {
   font-size: 20px;
   color: #333;
   margin: 0;
@@ -131,27 +109,27 @@
   line-height: 1.5;
 }
 
-.exam-details {
+.registration-details {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
   margin-bottom: 16px;
 }
 
-.exam-detail-item {
+.detail-item {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.detail-label {
+.detail-item label {
   font-size: 12px;
   color: #999;
   font-weight: 600;
   text-transform: uppercase;
 }
 
-.exam-detail-item span:not(.detail-label) {
+.detail-item span {
   font-size: 14px;
   color: #333;
   font-weight: 500;
@@ -162,56 +140,19 @@
   font-weight: 600 !important;
 }
 
-.exam-footer {
+.registration-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
 }
 
-.exam-footer-left {
-  display: flex;
-  align-items: center;
-}
-
-.exam-footer-right {
-  display: flex;
-  gap: 8px;
-}
-
-.registration-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: #d1fae5;
-  color: #065f46;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.view-button {
-  background: transparent;
-  color: #667eea;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.view-button:hover {
-  background: #f3f4f6;
-}
-
-.edit-button-small {
+.view-exam-button {
   background: #667eea;
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
@@ -219,22 +160,39 @@
   transition: background 0.2s;
 }
 
-.edit-button-small:hover {
+.view-exam-button:hover {
   background: #5568d3;
 }
 
-.no-exams {
+.no-registrations {
   text-align: center;
   padding: 60px 20px;
   color: #666;
 }
 
-.no-exams p {
+.no-registrations p {
   font-size: 18px;
   margin-bottom: 24px;
 }
 
-.exams-actions {
+.browse-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.browse-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.registrations-actions {
   display: flex;
   justify-content: center;
   margin-top: 32px;
@@ -294,5 +252,11 @@
 .loading-container p {
   color: #666;
   font-size: 16px;
+}
+
+.exam-loading {
+  padding: 20px;
+  text-align: center;
+  color: #999;
 }
 

@@ -186,6 +186,23 @@
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
 
+.secondary-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.secondary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+}
+
 .logout-button {
   background: #ef4444;
   color: white;

@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
+from ..application.registration.dto import RegistrationResponse
+from ..application.registration.services import RegistrationService
 from ..application.user.dto import (
     AuthResponse,
     GoogleLoginRequest,
@@ -7,8 +9,10 @@ from ..application.user.dto import (
     UserResponse,
 )
 from ..application.user.services import UserService
-from ..core.dependencies import get_current_user, get_user_repository
+from ..core.dependencies import get_current_user, get_exam_repository, get_registration_repository, get_user_repository
 from ..core.security import create_access_token
+from ..domain.exam.repository import ExamRepository
+from ..domain.registration.repository import RegistrationRepository
 from ..domain.user.entity import User
 from ..domain.user.repository import UserRepository
 
@@ -67,4 +71,32 @@ async def get_current_user_profile(
 ):
     """Get current user's profile."""
     return user_service.to_dto(current_user)
+
+
+def get_registration_service(
+    registration_repository: RegistrationRepository = Depends(get_registration_repository),
+    exam_repository: ExamRepository = Depends(get_exam_repository),
+    user_repository: UserRepository = Depends(get_user_repository),
+) -> RegistrationService:
+    """Dependency to get registration service."""
+    from ..application.registration.services import RegistrationService
+    return RegistrationService(registration_repository, exam_repository, user_repository)
+
+
+@router.get("/me/registrations", response_model=list[RegistrationResponse])
+async def get_my_registrations(
+    current_user: User = Depends(get_current_user),
+    registration_service: RegistrationService = Depends(get_registration_service),
+):
+    """Get current user's registrations."""
+    try:
+        registrations = await registration_service.get_user_registrations(current_user.id)
+        return [registration_service.to_dto(reg) for reg in registrations]
+    except Exception as e:
+        if "not found" in str(e).lower():
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e),
+            )
+        raise
 

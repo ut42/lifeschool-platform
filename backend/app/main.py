@@ -8,8 +8,9 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from .api.auth import router as auth_router
 from .api.exams import router as exams_router
-from .core.dependencies import set_exam_repository, set_user_repository
+from .core.dependencies import set_exam_repository, set_registration_repository, set_user_repository
 from .infrastructure.exam.repository import MongoDBExamRepository
+from .infrastructure.registration.repository import MongoDBRegistrationRepository
 from .infrastructure.user.repository import MongoDBUserRepository
 
 # Load environment variables
@@ -36,6 +37,9 @@ async def lifespan(app: FastAPI):
     await db.users.create_index("email", unique=True)
     await db.users.create_index("id", unique=True)
     await db.exams.create_index("id", unique=True)
+    await db.exam_registrations.create_index("id", unique=True)
+    await db.exam_registrations.create_index([("user_id", 1), ("exam_id", 1)], unique=True)
+    await db.exam_registrations.create_index("user_id")
     
     # Set repositories
     user_repository = MongoDBUserRepository(db)
@@ -43,6 +47,9 @@ async def lifespan(app: FastAPI):
     
     exam_repository = MongoDBExamRepository(db)
     set_exam_repository(exam_repository)
+    
+    registration_repository = MongoDBRegistrationRepository(db)
+    set_registration_repository(registration_repository)
     
     yield
     
@@ -53,8 +60,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="LifeSchool Exam Registration Platform",
-    description="Sprint-1 & Sprint-2: Authentication, User Profile & Exam Management",
-    version="2.0.0",
+    description="Sprint-1, Sprint-2 & Sprint-3: Authentication, User Profile, Exam Management & Registration",
+    version="3.0.0",
     lifespan=lifespan,
 )
 
@@ -70,6 +77,8 @@ app.add_middleware(
 # Include routers
 app.include_router(auth_router)
 app.include_router(exams_router)
+# Note: Registration endpoints are in exams.py (POST /exams/{exam_id}/register) 
+# and auth.py (GET /auth/me/registrations) to match API requirements
 
 
 @app.get("/")
@@ -77,7 +86,7 @@ async def root():
     """Root endpoint."""
     return {
         "message": "Radhe Radhe! 🙏 LifeSchool Exam Registration Platform API",
-        "version": "2.0.0",
+        "version": "3.0.0",
     }
 
 

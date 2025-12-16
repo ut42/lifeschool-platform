@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { examService } from '../services/examService'
+import { examService, registrationService } from '../services/examService'
 import './Exams.css'
 
 const Exams = () => {
@@ -10,10 +10,14 @@ const Exams = () => {
   const [exams, setExams] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [registrations, setRegistrations] = useState([])
 
   useEffect(() => {
     fetchExams()
-  }, [])
+    if (user?.role === 'USER') {
+      fetchRegistrations()
+    }
+  }, [user])
 
   const fetchExams = async () => {
     try {
@@ -27,6 +31,20 @@ const Exams = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchRegistrations = async () => {
+    try {
+      const data = await registrationService.getMyRegistrations()
+      setRegistrations(data)
+    } catch (err) {
+      console.error('Error fetching registrations:', err)
+      // Don't show error to user, just log it
+    }
+  }
+
+  const isRegistered = (examId) => {
+    return registrations.some(reg => reg.exam_id === examId)
   }
 
   const handleViewExam = (examId) => {
@@ -126,18 +144,27 @@ const Exams = () => {
                   </div>
                 </div>
                 <div className="exam-footer">
-                  <button className="view-button">View Details →</button>
-                  {user?.role === 'ADMIN' && (
-                    <button
-                      className="edit-button-small"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(`/exams/${exam.id}/edit`)
-                      }}
-                    >
-                      Edit
-                    </button>
-                  )}
+                  <div className="exam-footer-left">
+                    {user?.role === 'USER' && isRegistered(exam.id) && (
+                      <span className="registration-status-badge">
+                        ✓ Registered
+                      </span>
+                    )}
+                  </div>
+                  <div className="exam-footer-right">
+                    <button className="view-button">View Details →</button>
+                    {user?.role === 'ADMIN' && (
+                      <button
+                        className="edit-button-small"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/exams/${exam.id}/edit`)
+                        }}
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

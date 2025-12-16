@@ -27,6 +27,13 @@ class InMemoryExamRepository(ExamRepository):
     
     async def get_active(self) -> list[Exam]:
         return [exam for exam in self._exams.values() if exam.status == ExamStatus.ACTIVE]
+    
+    async def update(self, exam: Exam) -> Exam:
+        if str(exam.id) not in self._exams:
+            from app.domain.exam.exceptions import ExamNotFoundError
+            raise ExamNotFoundError(f"Exam with id {exam.id} not found")
+        self._exams[str(exam.id)] = exam
+        return exam
 
 
 @pytest.mark.asyncio

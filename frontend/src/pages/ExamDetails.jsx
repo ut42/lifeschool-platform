@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { examService } from '../services/examService'
+import { examService, registrationService } from '../services/examService'
 import './ExamDetails.css'
 
 const ExamDetails = () => {
@@ -11,10 +11,16 @@ const ExamDetails = () => {
   const [exam, setExam] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [registering, setRegistering] = useState(false)
+  const [registrationSuccess, setRegistrationSuccess] = useState(false)
+  const [isRegistered, setIsRegistered] = useState(false)
 
   useEffect(() => {
     fetchExam()
-  }, [examId])
+    if (user?.role === 'USER') {
+      checkRegistrationStatus()
+    }
+  }, [examId, user])
 
   const fetchExam = async () => {
     try {
@@ -27,6 +33,41 @@ const ExamDetails = () => {
       console.error('Error fetching exam:', err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkRegistrationStatus = async () => {
+    try {
+      const registrations = await registrationService.getMyRegistrations()
+      const registered = registrations.some(reg => reg.exam_id === examId)
+      setIsRegistered(registered)
+    } catch (err) {
+      console.error('Error checking registration status:', err)
+    }
+  }
+
+  const handleRegister = async () => {
+    if (!user?.is_profile_complete) {
+      setError('Please complete your profile (add mobile number) before registering for exams')
+      return
+    }
+
+    setError('')
+    setRegistrationSuccess(false)
+    setRegistering(true)
+
+    try {
+      await registrationService.registerForExam(examId)
+      setRegistrationSuccess(true)
+      setIsRegistered(true)
+      setTimeout(() => {
+        setRegistrationSuccess(false)
+      }, 3000)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to register for exam')
+      console.error('Error registering for exam:', err)
+    } finally {
+      setRegistering(false)
     }
   }
 
@@ -136,6 +177,37 @@ const ExamDetails = () => {
               </div>
             </div>
           </div>
+
+          {user?.role === 'USER' && exam?.status === 'ACTIVE' && (
+            <div className="registration-section">
+              {isRegistered ? (
+                <div className="registration-status registered">
+                  <span className="status-icon">✓</span>
+                  <span>You are registered for this exam</span>
+                </div>
+              ) : (
+                <div className="registration-section-content">
+                  {!user?.is_profile_complete && (
+                    <div className="warning-message">
+                      ⚠️ Please complete your profile (add mobile number) to register for exams
+                    </div>
+                  )}
+                  <button
+                    onClick={handleRegister}
+                    className="register-button"
+                    disabled={registering || !user?.is_profile_complete}
+                  >
+                    {registering ? 'Registering...' : 'Register for Exam'}
+                  </button>
+                </div>
+              )}
+              {registrationSuccess && (
+                <div className="success-message">
+                  ✓ Successfully registered for this exam!
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="exam-details-actions">

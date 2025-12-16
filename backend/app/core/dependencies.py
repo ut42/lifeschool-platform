@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..core.security import TokenData, verify_token
 from ..domain.exam.repository import ExamRepository
+from ..domain.registration.repository import RegistrationRepository
 from ..domain.user.entity import User, UserRole
 from ..domain.user.exceptions import UserNotFoundError
 from ..domain.user.repository import UserRepository
@@ -78,4 +79,21 @@ def get_exam_repository() -> ExamRepository:
     if _exam_repository is None:
         raise RuntimeError("Exam repository not initialized")
     return _exam_repository
+
+
+# Registration repository dependency
+_registration_repository: Optional[RegistrationRepository] = None
+
+
+def set_registration_repository(repository: RegistrationRepository) -> None:
+    """Set the registration repository instance."""
+    global _registration_repository
+    _registration_repository = repository
+
+
+def get_registration_repository() -> RegistrationRepository:
+    """Get the registration repository instance."""
+    if _registration_repository is None:
+        raise RuntimeError("Registration repository not initialized")
+    return _registration_repository
 

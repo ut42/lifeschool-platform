@@ -6,6 +6,7 @@ import Exams from './pages/Exams'
 import CreateExam from './pages/CreateExam'
 import ExamDetails from './pages/ExamDetails'
 import EditExam from './pages/EditExam'
+import MyRegistrations from './pages/MyRegistrations'
 import ProtectedRoute from './components/ProtectedRoute'
 import './App.css'
 
@@ -53,6 +54,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <EditExam />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/registrations"
+              element={
+                <ProtectedRoute>
+                  <MyRegistrations />
                 </ProtectedRoute>
               }
             />

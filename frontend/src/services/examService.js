@@ -26,5 +26,18 @@ export const examService = {
   },
 }
 
-export default examService
+export const registrationService = {
+  // Register for an exam (USER only)
+  async registerForExam(examId) {
+    const response = await api.post(`/exams/${examId}/register`)
+    return response.data
+  },
 
+  // Get user's registrations
+  async getMyRegistrations() {
+    const response = await api.get('/auth/me/registrations')
+    return response.data
+  },
+}
+
+export default examService
