@@ -11,6 +11,7 @@ const Exams = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [registrations, setRegistrations] = useState([])
+  const [registrationCounts, setRegistrationCounts] = useState({})
 
   useEffect(() => {
     fetchExams()
@@ -18,6 +19,13 @@ const Exams = () => {
       fetchRegistrations()
     }
   }, [user])
+
+  useEffect(() => {
+    // Fetch counts when exams are loaded (for admin)
+    if (user?.role === 'ADMIN' && exams.length > 0) {
+      fetchRegistrationCounts()
+    }
+  }, [exams, user])
 
   const fetchExams = async () => {
     try {
@@ -43,8 +51,51 @@ const Exams = () => {
     }
   }
 
-  const isRegistered = (examId) => {
-    return registrations.some(reg => reg.exam_id === examId)
+  const fetchRegistrationCounts = async () => {
+    if (exams.length === 0) return
+    
+    try {
+      const counts = {}
+      // Fetch counts for all exams in parallel
+      const countPromises = exams.map(async (exam) => {
+        try {
+          const count = await registrationService.getExamRegistrationCount(exam.id)
+          return { examId: exam.id, count }
+        } catch (err) {
+          console.error(`Error fetching count for exam ${exam.id}:`, err)
+          return { examId: exam.id, count: 0 }
+        }
+      })
+      
+      const results = await Promise.all(countPromises)
+      results.forEach(({ examId, count }) => {
+        counts[examId] = count
+      })
+      
+      setRegistrationCounts(counts)
+    } catch (err) {
+      console.error('Error fetching registration counts:', err)
+      // Don't show error to user, just log it
+    }
+  }
+
+  const getRegistration = (examId) => {
+    return registrations.find(reg => reg.exam_id === examId)
+  }
+
+  const getRegistrationStatusDisplay = (status) => {
+    const statusMap = {
+      'REGISTERED': '✓ Registered',
+      'PAYMENT_PENDING': '⏳ Payment Pending',
+      'PAID': '✓ Paid',
+      'ENROLLED': '🎓 Enrolled',
+    }
+    return statusMap[status] || '✓ Registered'
+  }
+
+  const getRegistrationStatusClass = (status) => {
+    const statusLower = status.toLowerCase().replace('_', '-')
+    return `registration-status-badge ${statusLower}`
   }
 
   const handleViewExam = (examId) => {
@@ -145,25 +196,38 @@ const Exams = () => {
                 </div>
                 <div className="exam-footer">
                   <div className="exam-footer-left">
-                    {user?.role === 'USER' && isRegistered(exam.id) && (
-                      <span className="registration-status-badge">
-                        ✓ Registered
-                      </span>
-                    )}
+                    {user?.role === 'USER' && (() => {
+                      const registration = getRegistration(exam.id)
+                      if (registration) {
+                        return (
+                          <span className={getRegistrationStatusClass(registration.status)}>
+                            {getRegistrationStatusDisplay(registration.status)}
+                          </span>
+                        )
+                      }
+                      return null
+                    })()}
                   </div>
                   <div className="exam-footer-right">
-                    <button className="view-button">View Details →</button>
-                    {user?.role === 'ADMIN' && (
-                      <button
-                        className="edit-button-small"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          navigate(`/exams/${exam.id}/edit`)
-                        }}
-                      >
-                        Edit
-                      </button>
-                    )}
+                    <div className="exam-footer-right-content">
+                      {user?.role === 'ADMIN' && registrationCounts[exam.id] !== undefined && (
+                        <span className="registration-count-badge">
+                          {registrationCounts[exam.id]} {registrationCounts[exam.id] === 1 ? 'Registration' : 'Registrations'}
+                        </span>
+                      )}
+                      <button className="view-button">View Details →</button>
+                      {user?.role === 'ADMIN' && (
+                        <button
+                          className="edit-button-small"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/exams/${exam.id}/edit`)
+                          }}
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

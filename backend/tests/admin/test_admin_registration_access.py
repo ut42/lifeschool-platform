@@ -103,6 +103,23 @@ class InMemoryRegistrationRepository(RegistrationRepository):
         """Get all registrations for an exam."""
         exam_id_str = str(exam_id)
         return self._by_exam.get(exam_id_str, [])
+    
+    async def update_status(
+        self,
+        registration_id,
+        new_status: RegistrationStatus,
+        expected_status: RegistrationStatus = None,
+    ) -> ExamRegistration:
+        reg = self._registrations.get(str(registration_id))
+        if not reg:
+            from app.domain.registration.exceptions import RegistrationNotFoundError
+            raise RegistrationNotFoundError(f"Registration {registration_id} not found")
+        if expected_status and reg.status != expected_status:
+            raise ValueError(
+                f"Cannot transition from {reg.status} to {new_status}. Expected {expected_status}"
+            )
+        reg.status = new_status
+        return reg
 
 
 @pytest.mark.asyncio

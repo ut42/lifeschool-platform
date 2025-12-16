@@ -92,6 +92,24 @@ class InMemoryRegistrationRepository(RegistrationRepository):
             reg for reg in self._registrations.values()
             if str(reg.exam_id) == str(exam_id)
         ]
+    
+    async def update_status(
+        self,
+        registration_id,
+        new_status,
+        expected_status=None,
+    ):
+        from app.domain.registration.entity import RegistrationStatus
+        reg = self._registrations.get(str(registration_id))
+        if not reg:
+            from app.domain.registration.exceptions import RegistrationNotFoundError
+            raise RegistrationNotFoundError(f"Registration {registration_id} not found")
+        if expected_status and reg.status != expected_status:
+            raise ValueError(
+                f"Cannot transition from {reg.status} to {new_status}. Expected {expected_status}"
+            )
+        reg.status = new_status
+        return reg
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { registrationService, examService } from '../services/examService'
+import { registrationService, examService, paymentService } from '../services/examService'
 import './MyRegistrations.css'
 
 const MyRegistrations = () => {
@@ -11,6 +11,8 @@ const MyRegistrations = () => {
   const [exams, setExams] = useState({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [processingPayment, setProcessingPayment] = useState({})
+  const [paymentSuccess, setPaymentSuccess] = useState({})
 
   useEffect(() => {
     fetchRegistrations()
@@ -45,6 +47,64 @@ const MyRegistrations = () => {
 
   const handleViewExam = (examId) => {
     navigate(`/exams/${examId}`)
+  }
+
+  const handleInitiatePayment = async (registrationId) => {
+    setError('')
+    setProcessingPayment(prev => ({ ...prev, [registrationId]: true }))
+    setPaymentSuccess(prev => ({ ...prev, [registrationId]: false }))
+
+    try {
+      await paymentService.initiatePayment(registrationId)
+      // Refresh registrations to get updated status
+      await fetchRegistrations()
+      setPaymentSuccess(prev => ({ ...prev, [registrationId]: 'initiated' }))
+      setTimeout(() => {
+        setPaymentSuccess(prev => {
+          const newState = { ...prev }
+          delete newState[registrationId]
+          return newState
+        })
+      }, 3000)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to initiate payment')
+      console.error('Error initiating payment:', err)
+    } finally {
+      setProcessingPayment(prev => {
+        const newState = { ...prev }
+        delete newState[registrationId]
+        return newState
+      })
+    }
+  }
+
+  const handleConfirmPayment = async (registrationId) => {
+    setError('')
+    setProcessingPayment(prev => ({ ...prev, [registrationId]: true }))
+    setPaymentSuccess(prev => ({ ...prev, [registrationId]: false }))
+
+    try {
+      await paymentService.confirmPayment(registrationId)
+      // Refresh registrations to get updated status
+      await fetchRegistrations()
+      setPaymentSuccess(prev => ({ ...prev, [registrationId]: 'confirmed' }))
+      setTimeout(() => {
+        setPaymentSuccess(prev => {
+          const newState = { ...prev }
+          delete newState[registrationId]
+          return newState
+        })
+      }, 3000)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to confirm payment')
+      console.error('Error confirming payment:', err)
+    } finally {
+      setProcessingPayment(prev => {
+        const newState = { ...prev }
+        delete newState[registrationId]
+        return newState
+      })
+    }
   }
 
   const handleLogout = () => {
@@ -140,6 +200,35 @@ const MyRegistrations = () => {
                         </div>
                       </div>
                       <div className="registration-footer">
+                        <div className="registration-status-section">
+                          <span className={`payment-status-badge ${registration.status.toLowerCase().replace('_', '-')}`}>
+                            {registration.status.replace('_', ' ')}
+                          </span>
+                          {registration.status === 'REGISTERED' && (
+                            <button
+                              onClick={() => handleInitiatePayment(registration.id)}
+                              className="pay-button"
+                              disabled={processingPayment[registration.id]}
+                            >
+                              {processingPayment[registration.id] ? 'Processing...' : 'Pay Now'}
+                            </button>
+                          )}
+                          {registration.status === 'PAYMENT_PENDING' && (
+                            <button
+                              onClick={() => handleConfirmPayment(registration.id)}
+                              className="confirm-payment-button"
+                              disabled={processingPayment[registration.id]}
+                            >
+                              {processingPayment[registration.id] ? 'Processing...' : 'Confirm Payment'}
+                            </button>
+                          )}
+                          {paymentSuccess[registration.id] === 'initiated' && (
+                            <span className="success-message-small">✓ Payment initiated</span>
+                          )}
+                          {paymentSuccess[registration.id] === 'confirmed' && (
+                            <span className="success-message-small">✓ Payment confirmed</span>
+                          )}
+                        </div>
                         <button
                           onClick={() => handleViewExam(exam.id)}
                           className="view-exam-button"

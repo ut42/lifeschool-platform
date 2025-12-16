@@ -7,8 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from .api.admin.registrations import router as admin_registrations_router
+from .api.admin.enrollments import router as admin_enrollments_router
 from .api.auth import router as auth_router
 from .api.exams import router as exams_router
+from .api.payments import router as payments_router
 from .core.dependencies import set_exam_repository, set_registration_repository, set_user_repository
 from .infrastructure.exam.repository import MongoDBExamRepository
 from .infrastructure.registration.repository import MongoDBRegistrationRepository
@@ -79,6 +81,8 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(exams_router)
 app.include_router(admin_registrations_router)
+app.include_router(admin_enrollments_router)
+app.include_router(payments_router)
 # Note: Registration endpoints are in exams.py (POST /exams/{exam_id}/register) 
 # and auth.py (GET /auth/me/registrations) to match API requirements
 

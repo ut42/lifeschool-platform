@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { examService, registrationService } from '../services/examService'
+import { examService, registrationService, paymentService } from '../services/examService'
 import './ExamDetails.css'
 
 const ExamDetails = () => {
@@ -14,6 +14,9 @@ const ExamDetails = () => {
   const [registering, setRegistering] = useState(false)
   const [registrationSuccess, setRegistrationSuccess] = useState(false)
   const [isRegistered, setIsRegistered] = useState(false)
+  const [registration, setRegistration] = useState(null)
+  const [processingPayment, setProcessingPayment] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState('')
 
   useEffect(() => {
     fetchExam()
@@ -39,8 +42,13 @@ const ExamDetails = () => {
   const checkRegistrationStatus = async () => {
     try {
       const registrations = await registrationService.getMyRegistrations()
-      const registered = registrations.some(reg => reg.exam_id === examId)
-      setIsRegistered(registered)
+      const userRegistration = registrations.find(reg => reg.exam_id === examId)
+      setIsRegistered(!!userRegistration)
+      if (userRegistration) {
+        setRegistration(userRegistration)
+      } else {
+        setRegistration(null)
+      }
     } catch (err) {
       console.error('Error checking registration status:', err)
     }
@@ -60,6 +68,8 @@ const ExamDetails = () => {
       await registrationService.registerForExam(examId)
       setRegistrationSuccess(true)
       setIsRegistered(true)
+      // Refresh registration status to get the new registration
+      await checkRegistrationStatus()
       setTimeout(() => {
         setRegistrationSuccess(false)
       }, 3000)
@@ -181,9 +191,68 @@ const ExamDetails = () => {
           {user?.role === 'USER' && exam?.status === 'ACTIVE' && (
             <div className="registration-section">
               {isRegistered ? (
-                <div className="registration-status registered">
-                  <span className="status-icon">✓</span>
-                  <span>You are registered for this exam</span>
+                <div className="registration-status-container">
+                  <div className="registration-status registered">
+                    <span className="status-icon">✓</span>
+                    <span>You are registered for this exam</span>
+                  </div>
+                  {registration && (
+                    <div className="payment-actions">
+                      <span className={`payment-status-badge ${registration.status.toLowerCase().replace('_', '-')}`}>
+                        Status: {registration.status.replace('_', ' ')}
+                      </span>
+                      {registration.status === 'REGISTERED' && (
+                        <button
+                          onClick={async () => {
+                            setProcessingPayment(true)
+                            setPaymentSuccess('')
+                            try {
+                              await paymentService.initiatePayment(registration.id)
+                              await checkRegistrationStatus()
+                              setPaymentSuccess('initiated')
+                              setTimeout(() => setPaymentSuccess(''), 3000)
+                            } catch (err) {
+                              setError(err.response?.data?.detail || 'Failed to initiate payment')
+                            } finally {
+                              setProcessingPayment(false)
+                            }
+                          }}
+                          className="pay-button"
+                          disabled={processingPayment}
+                        >
+                          {processingPayment ? 'Processing...' : 'Pay Now'}
+                        </button>
+                      )}
+                      {registration.status === 'PAYMENT_PENDING' && (
+                        <button
+                          onClick={async () => {
+                            setProcessingPayment(true)
+                            setPaymentSuccess('')
+                            try {
+                              await paymentService.confirmPayment(registration.id)
+                              await checkRegistrationStatus()
+                              setPaymentSuccess('confirmed')
+                              setTimeout(() => setPaymentSuccess(''), 3000)
+                            } catch (err) {
+                              setError(err.response?.data?.detail || 'Failed to confirm payment')
+                            } finally {
+                              setProcessingPayment(false)
+                            }
+                          }}
+                          className="confirm-payment-button"
+                          disabled={processingPayment}
+                        >
+                          {processingPayment ? 'Processing...' : 'Confirm Payment'}
+                        </button>
+                      )}
+                      {paymentSuccess === 'initiated' && (
+                        <span className="success-message-small">✓ Payment initiated</span>
+                      )}
+                      {paymentSuccess === 'confirmed' && (
+                        <span className="success-message-small">✓ Payment confirmed</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="registration-section-content">

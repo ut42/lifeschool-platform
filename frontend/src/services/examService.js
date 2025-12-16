@@ -44,6 +44,42 @@ export const registrationService = {
     const response = await api.get(`/admin/exams/${examId}/registrations`)
     return response.data
   },
+
+  // Get registration count for an exam (ADMIN only)
+  async getExamRegistrationCount(examId) {
+    const response = await api.get(`/admin/exams/${examId}/registrations`)
+    return response.data.length
+  },
+}
+
+export const paymentService = {
+  // Initiate payment for a registration (USER only)
+  async initiatePayment(registrationId) {
+    const response = await api.post(`/payments/registrations/${registrationId}/pay`)
+    return response.data
+  },
+
+  // Confirm payment (mocked) (USER only)
+  async confirmPayment(registrationId) {
+    const response = await api.post(`/payments/${registrationId}/confirm`)
+    return response.data
+  },
+}
+
+export const enrollmentService = {
+  // Enroll a single registration (ADMIN only)
+  async enrollRegistration(registrationId) {
+    const response = await api.post(`/admin/registrations/${registrationId}/enroll`)
+    return response.data
+  },
+
+  // Bulk enroll multiple registrations (ADMIN only)
+  async bulkEnrollRegistrations(registrationIds) {
+    const response = await api.post('/admin/registrations/enroll/bulk', {
+      registration_ids: registrationIds,
+    })
+    return response.data
+  },
 }
 
 export default examService

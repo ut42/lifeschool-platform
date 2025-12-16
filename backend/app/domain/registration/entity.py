@@ -6,6 +6,9 @@ from uuid import UUID, uuid4
 
 class RegistrationStatus(str, Enum):
     REGISTERED = "REGISTERED"
+    PAYMENT_PENDING = "PAYMENT_PENDING"
+    PAID = "PAID"
+    ENROLLED = "ENROLLED"
 
 
 class ExamRegistration:

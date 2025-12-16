@@ -177,6 +177,23 @@
 .exam-footer-right {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.exam-footer-right-content {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.registration-count-badge {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .registration-status-badge {
@@ -184,11 +201,29 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: #d1fae5;
-  color: #065f46;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
+}
+
+.registration-status-badge.registered {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.registration-status-badge.payment-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.registration-status-badge.paid {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.registration-status-badge.enrolled {
+  background: #d1fae5;
+  color: #065f46;
 }
 
 .view-button {

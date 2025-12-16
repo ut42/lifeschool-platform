@@ -1,12 +1,12 @@
 import pytest
 from datetime import datetime, timezone, timedelta
 
-from app.application.registration.services import RegistrationService
+from app.application.payment.services import PaymentService
 from app.domain.exam.entity import Exam, ExamStatus
 from app.domain.exam.repository import ExamRepository
-from app.domain.registration.entity import ExamRegistration
+from app.domain.registration.entity import ExamRegistration, RegistrationStatus
 from app.domain.registration.repository import RegistrationRepository
-from app.domain.user.entity import User
+from app.domain.user.entity import User, UserRole
 from app.domain.user.repository import UserRepository
 
 
@@ -30,6 +30,9 @@ class InMemoryExamRepository(ExamRepository):
         return [exam for exam in self._exams.values() if exam.status == ExamStatus.ACTIVE]
     
     async def update(self, exam: Exam) -> Exam:
+        if str(exam.id) not in self._exams:
+            from app.domain.exam.exceptions import ExamNotFoundError
+            raise ExamNotFoundError(f"Exam with id {exam.id} not found")
         self._exams[str(exam.id)] = exam
         return exam
 
@@ -64,6 +67,7 @@ class InMemoryRegistrationRepository(RegistrationRepository):
     def __init__(self):
         self._registrations = {}
         self._by_user_exam = {}
+        self._by_exam = {}
     
     async def create(self, registration: ExamRegistration) -> ExamRegistration:
         key = (str(registration.user_id), str(registration.exam_id))
@@ -72,6 +76,12 @@ class InMemoryRegistrationRepository(RegistrationRepository):
             raise DuplicateRegistrationError("Duplicate")
         self._registrations[str(registration.id)] = registration
         self._by_user_exam[key] = registration
+        
+        exam_id_str = str(registration.exam_id)
+        if exam_id_str not in self._by_exam:
+            self._by_exam[exam_id_str] = []
+        self._by_exam[exam_id_str].append(registration)
+        
         return registration
     
     async def get_by_id(self, registration_id) -> ExamRegistration:
@@ -88,113 +98,140 @@ class InMemoryRegistrationRepository(RegistrationRepository):
         ]
     
     async def get_by_exam_id(self, exam_id) -> list[ExamRegistration]:
-        return [
-            reg for reg in self._registrations.values()
-            if str(reg.exam_id) == str(exam_id)
-        ]
+        exam_id_str = str(exam_id)
+        return self._by_exam.get(exam_id_str, [])
     
     async def update_status(
         self,
         registration_id,
-        new_status,
-        expected_status=None,
+        new_status: RegistrationStatus,
+        expected_status: RegistrationStatus = None,
     ) -> ExamRegistration:
-        from app.domain.registration.entity import RegistrationStatus
+        """Update registration status atomically."""
         reg = self._registrations.get(str(registration_id))
         if not reg:
             from app.domain.registration.exceptions import RegistrationNotFoundError
             raise RegistrationNotFoundError(f"Registration {registration_id} not found")
+        
         if expected_status and reg.status != expected_status:
             raise ValueError(
                 f"Cannot transition from {reg.status} to {new_status}. Expected {expected_status}"
             )
+        
         reg.status = new_status
         return reg
 
 
 @pytest.mark.asyncio
-async def test_user_can_see_their_registrations():
-    """Test that user can see their registrations."""
+async def test_cannot_confirm_payment_unless_status_is_payment_pending():
+    """Test that cannot confirm payment unless status is PAYMENT_PENDING."""
     exam_repo = InMemoryExamRepository()
     user_repo = InMemoryUserRepository()
     reg_repo = InMemoryRegistrationRepository()
-    service = RegistrationService(reg_repo, exam_repo, user_repo)
+    service = PaymentService(reg_repo, exam_repo, user_repo)
     
-    # Create user with mobile
+    # Create user
     user = User(email="test@example.com", name="Test User", mobile="1234567890")
     await user_repo.create(user)
     
-    # Create two active exams
-    start_date = datetime.now(timezone.utc) + timedelta(days=30)
-    end_date = start_date + timedelta(hours=3)
-    
-    exam1 = Exam(
-        title="Exam 1",
-        start_date=start_date,
-        end_date=end_date,
-        status=ExamStatus.ACTIVE,
-    )
-    await exam_repo.create(exam1)
-    
-    exam2 = Exam(
-        title="Exam 2",
-        start_date=start_date,
-        end_date=end_date,
-        status=ExamStatus.ACTIVE,
-    )
-    await exam_repo.create(exam2)
-    
-    # Register for both exams
-    reg1 = await service.register_for_exam(user.id, exam1.id)
-    reg2 = await service.register_for_exam(user.id, exam2.id)
-    
-    # Get user registrations
-    registrations = await service.get_user_registrations(user.id)
-    
-    assert len(registrations) == 2
-    exam_ids = {reg.exam_id for reg in registrations}
-    assert exam1.id in exam_ids
-    assert exam2.id in exam_ids
-
-
-@pytest.mark.asyncio
-async def test_user_sees_only_their_own_registrations():
-    """Test that user sees only their own registrations."""
-    exam_repo = InMemoryExamRepository()
-    user_repo = InMemoryUserRepository()
-    reg_repo = InMemoryRegistrationRepository()
-    service = RegistrationService(reg_repo, exam_repo, user_repo)
-    
-    # Create two users with mobile
-    user1 = User(email="user1@example.com", name="User 1", mobile="1234567890")
-    user2 = User(email="user2@example.com", name="User 2", mobile="9876543210")
-    await user_repo.create(user1)
-    await user_repo.create(user2)
-    
-    # Create active exam
+    # Create exam first
     start_date = datetime.now(timezone.utc) + timedelta(days=30)
     end_date = start_date + timedelta(hours=3)
     exam = Exam(
-        title="Active Exam",
+        title="Test Exam",
         start_date=start_date,
         end_date=end_date,
         status=ExamStatus.ACTIVE,
     )
     await exam_repo.create(exam)
     
-    # User1 registers
-    await service.register_for_exam(user1.id, exam.id)
+    # Create registration with REGISTERED status
+    registration = ExamRegistration(
+        user_id=user.id,
+        exam_id=exam.id,
+        status=RegistrationStatus.REGISTERED,
+    )
+    await reg_repo.create(registration)
     
-    # User2 registers
-    await service.register_for_exam(user2.id, exam.id)
+    # Try to confirm payment - should fail
+    with pytest.raises(ValueError, match="must be PAYMENT_PENDING"):
+        await service.confirm_payment(registration.id, user.id, UserRole.USER)
+
+
+@pytest.mark.asyncio
+async def test_cannot_confirm_payment_twice():
+    """Test that cannot confirm payment twice."""
+    exam_repo = InMemoryExamRepository()
+    user_repo = InMemoryUserRepository()
+    reg_repo = InMemoryRegistrationRepository()
+    service = PaymentService(reg_repo, exam_repo, user_repo)
     
-    # User1 should see only their registration
-    user1_regs = await service.get_user_registrations(user1.id)
-    assert len(user1_regs) == 1
-    assert user1_regs[0].user_id == user1.id
+    # Create user
+    user = User(email="test@example.com", name="Test User", mobile="1234567890")
+    await user_repo.create(user)
     
-    # User2 should see only their registration
-    user2_regs = await service.get_user_registrations(user2.id)
-    assert len(user2_regs) == 1
-    assert user2_regs[0].user_id == user2.id
+    # Create exam first
+    start_date = datetime.now(timezone.utc) + timedelta(days=30)
+    end_date = start_date + timedelta(hours=3)
+    exam = Exam(
+        title="Test Exam",
+        start_date=start_date,
+        end_date=end_date,
+        status=ExamStatus.ACTIVE,
+    )
+    await exam_repo.create(exam)
+    
+    # Create registration with PAYMENT_PENDING status
+    registration = ExamRegistration(
+        user_id=user.id,
+        exam_id=exam.id,
+        status=RegistrationStatus.PAYMENT_PENDING,
+    )
+    await reg_repo.create(registration)
+    
+    # Confirm payment first time - should succeed
+    updated_reg = await service.confirm_payment(registration.id, user.id, UserRole.USER)
+    assert updated_reg.status == RegistrationStatus.PAID
+    
+    # Try to confirm payment again - should fail
+    with pytest.raises(ValueError, match="must be PAYMENT_PENDING"):
+        await service.confirm_payment(registration.id, user.id, UserRole.USER)
+
+
+@pytest.mark.asyncio
+async def test_user_can_confirm_payment_for_payment_pending_registration():
+    """Test that user can confirm payment for PAYMENT_PENDING registration."""
+    exam_repo = InMemoryExamRepository()
+    user_repo = InMemoryUserRepository()
+    reg_repo = InMemoryRegistrationRepository()
+    service = PaymentService(reg_repo, exam_repo, user_repo)
+    
+    # Create user
+    user = User(email="test@example.com", name="Test User", mobile="1234567890")
+    await user_repo.create(user)
+    
+    # Create exam first
+    start_date = datetime.now(timezone.utc) + timedelta(days=30)
+    end_date = start_date + timedelta(hours=3)
+    exam = Exam(
+        title="Test Exam",
+        start_date=start_date,
+        end_date=end_date,
+        status=ExamStatus.ACTIVE,
+    )
+    await exam_repo.create(exam)
+    
+    # Create registration with PAYMENT_PENDING status
+    registration = ExamRegistration(
+        user_id=user.id,
+        exam_id=exam.id,
+        status=RegistrationStatus.PAYMENT_PENDING,
+    )
+    await reg_repo.create(registration)
+    
+    # Confirm payment
+    updated_reg = await service.confirm_payment(registration.id, user.id, UserRole.USER)
+    
+    assert updated_reg.status == RegistrationStatus.PAID
+    assert updated_reg.id == registration.id
 
