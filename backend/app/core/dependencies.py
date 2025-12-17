@@ -97,3 +97,26 @@ def get_registration_repository() -> RegistrationRepository:
         raise RuntimeError("Registration repository not initialized")
     return _registration_repository
 
+
+# Content repository dependency
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..domain.content.repository import ContentRepository
+
+_content_repository: Optional["ContentRepository"] = None
+
+
+def set_content_repository(repository: "ContentRepository") -> None:
+    """Set the content repository instance."""
+    global _content_repository
+    _content_repository = repository
+
+
+def get_content_repository() -> "ContentRepository":
+    """Get the content repository instance."""
+    from ..domain.content.repository import ContentRepository
+    if _content_repository is None:
+        raise RuntimeError("Content repository not initialized")
+    return _content_repository
+

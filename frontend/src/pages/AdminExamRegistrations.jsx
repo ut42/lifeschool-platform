@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { examService, registrationService, enrollmentService } from '../services/examService'
+import { examService, registrationService, enrollmentService, exportService } from '../services/examService'
 import './AdminExamRegistrations.css'
 
 const AdminExamRegistrations = () => {
@@ -18,6 +18,7 @@ const AdminExamRegistrations = () => {
   const [selectedRegistrations, setSelectedRegistrations] = useState(new Set())
   const [enrollmentMessage, setEnrollmentMessage] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     if (user?.role !== 'ADMIN') {
@@ -157,6 +158,22 @@ const AdminExamRegistrations = () => {
     return ['REGISTERED', 'PAYMENT_PENDING', 'PAID'].includes(status)
   }
 
+  const handleExportCSV = async () => {
+    setError('')
+    setExporting(true)
+
+    try {
+      await exportService.exportExamRegistrations(examId)
+      setEnrollmentMessage('CSV exported successfully!')
+      setTimeout(() => setEnrollmentMessage(''), 3000)
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to export CSV')
+      console.error('Error exporting CSV:', err)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   // Filter registrations based on search query
   const filteredRegistrations = registrations.filter((registration) => {
     if (!searchQuery.trim()) {
@@ -218,10 +235,19 @@ const AdminExamRegistrations = () => {
 
         {exam && (
           <div className="exam-info-section">
-            <h3>{exam.title}</h3>
-            <span className={`status-badge ${exam.status.toLowerCase()}`}>
-              {exam.status}
-            </span>
+            <div className="exam-info-left">
+              <h3>{exam.title}</h3>
+              <span className={`status-badge ${exam.status.toLowerCase()}`}>
+                {exam.status}
+              </span>
+            </div>
+            <button
+              onClick={handleExportCSV}
+              className="export-csv-button"
+              disabled={exporting}
+            >
+              {exporting ? 'Exporting...' : '📥 Export CSV'}
+            </button>
           </div>
         )}
 

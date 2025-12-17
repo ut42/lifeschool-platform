@@ -82,4 +82,26 @@ export const enrollmentService = {
   },
 }
 
+export const exportService = {
+  // Export exam registrations as CSV (ADMIN only)
+  async exportExamRegistrations(examId) {
+    const response = await api.get(`/admin/exams/${examId}/registrations/export`, {
+      responseType: 'blob', // Important for file download
+    })
+    
+    // Create blob URL and trigger download
+    const blob = new Blob([response.data], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `exam_${examId}_registrations.csv`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    
+    return true
+  },
+}
+
 export default examService

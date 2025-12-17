@@ -135,9 +135,28 @@ const Profile = () => {
               <button onClick={() => navigate('/exams')} className="primary-button">
                 View Exams →
               </button>
+
               {user?.role === 'USER' && (
                 <button onClick={() => navigate('/registrations')} className="secondary-button">
                   My Registrations →
+                </button>
+              )}
+
+              {/* CMS public navigation */}
+              <button onClick={() => navigate('/courses')} className="secondary-button">
+                View Courses →
+              </button>
+              <button onClick={() => navigate('/blogs')} className="secondary-button">
+                View Blogs →
+              </button>
+              <button onClick={() => navigate('/gallery')} className="secondary-button">
+                View Gallery →
+              </button>
+
+              {/* Admin-only CMS management */}
+              {user?.role === 'ADMIN' && (
+                <button onClick={() => navigate('/admin/content')} className="primary-button">
+                  Manage Content →
                 </button>
               )}
             </>
